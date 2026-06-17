@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Reconocimiento de voz</title>
+<style>
+  body { font-family: monospace; max-width: 600px; margin: 40px auto; padding: 0 20px; }
+  button { padding: 10px 20px; font-size: 16px; cursor: pointer; }
+  #output { margin-top: 20px; padding: 15px; border: 1px solid #ccc; min-height: 100px; white-space: pre-wrap; }
+  .listening { color: red; }
+</style>
+</head>
+<body>
+
+<button id="btn">Activar micrófono</button>
+<span id="estado"></span>
+<div id="output"></div>
+
+<script>
+const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+if (!SpeechRecognition) {
+  document.getElementById('output').textContent = 'Este navegador no soporta reconocimiento de voz. Usa Chrome o Edge.';
+} else {
+  const recognition = new SpeechRecognition();
+  recognition.lang = 'es-ES';
+  recognition.continuous = true;
+  recognition.interimResults = true;
+
+  const btn = document.getElementById('btn');
+  const output = document.getElementById('output');
+  const estado = document.getElementById('estado');
+  let escuchando = false;
+
+  btn.onclick = () => {
+    btn.disabled = true;
+    try {
+      if (!escuchando) {
+        recognition.start();
+      } else {
+        recognition.stop();
+      }
+    } catch (e) {
+      btn.disabled = false;
+    }
+  };
+
+  recognition.onstart = () => {
+    escuchando = true;
+    estado.textContent = ' Escuchando...';
+    estado.className = 'listening';
+    btn.textContent = 'Detener';
+    btn.disabled = false;
+  };
+
+  recognition.onend = () => {
+    escuchando = false;
+    estado.textContent = '';
+    btn.textContent = 'Activar micrófono';
+    btn.disabled = false;
+  };
+
+  recognition.onresult = (event) => {
+    let texto = '';
+    for (let i = 0; i < event.results.length; i++) {
+      texto += event.results[i][0].transcript;
+    }
+    output.textContent = texto;
+  };
+
+  recognition.onerror = (event) => {
+    output.textContent = 'Error: ' + event.error;
+  };
+}
+</script>
+
+</body>
+</html>
